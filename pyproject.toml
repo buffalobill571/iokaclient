@@ -1,0 +1,79 @@
+[build-system]
+requires = [
+    "setuptools-scm[toml]==7.1.0",
+    "setuptools==68.1.2",
+    "wheel==0.41.1",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["ioka"]
+
+[project]
+name = "iokaclient"
+description = "Ioka client"
+readme = "README.rst"
+requires-python = ">=3.8,<4"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Bakhtiyar Dabylov", email = "bdabylovb@gmail.com"},
+]
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Payments",
+]
+dependencies=[
+    "httpx==0.25.0",
+    "pydantic==2.4.2",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = [
+    "flake8-broken-line==1.0.0",
+    "flake8-bugbear==23.7.10",
+    "flake8-commas==2.1.0",
+    "flake8-comprehensions==3.14.0",
+    "flake8-debugger==4.1.2",
+    "flake8-eradicate==1.5.0",
+    "flake8-isort==6.0.0",
+    "flake8-print==5.0.0",
+    "flake8-pyproject==1.2.3",
+    "flake8-quotes==3.3.2",
+    "flake8==6.1.0",
+    "pep8-naming==0.13.3",
+]
+test = [
+    "pytest-asyncio==0.21.1",
+    "pytest-cov==4.1.0",
+    "pytest-mock==3.11.1",
+    "pytest==7.4.1",
+]
+dynamic = ["version"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=ioka --no-cov-on-fail"
+testpaths = [
+    "ioka",
+    "tests",
+]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == '__main__':",
+]
+
+[tool.isort]
+src_paths = ["ioka", "tests"]
+multi_line_output = 3
+lines_after_imports = 2
+include_trailing_comma = true
