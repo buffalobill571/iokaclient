@@ -1,0 +1,9 @@
+*.egg
+*.egg-info
+.*
+!.gitignore
+!.github
+__pycache__
+build
+dist
+htmlcov
