@@ -5,6 +5,14 @@ import enum
 import typing
 
 
+Ioka = typing.Any
+
+if typing.TYPE_CHECKING:
+    from . import client
+
+    Ioka = client.Ioka
+
+
 _MoneyAmountTypes = typing.Union[int, float, decimal.Decimal]
 
 
@@ -156,7 +164,7 @@ class TaxType(enum.IntEnum):
 
 @dataclasses.dataclass
 class _Model:
-    client: typing.Any = dataclasses.field(
+    client: Ioka = dataclasses.field(
         init=True,
         repr=False,
     )
@@ -215,6 +223,9 @@ class Order(_Model):
     def cancel(self, reason: typing.Optional[str] = None) -> 'Payment':
         return self.client.cancel_order(self.id, reason=reason)
 
+    async def a_cancel(self, reason: typing.Optional[str] = None) -> 'Payment':
+        return await self.client.a_cancel_order(self.id, reason=reason)
+
     def capture(
         self,
         amount: typing.Optional[Money] = None,
@@ -222,24 +233,49 @@ class Order(_Model):
     ) -> 'Payment':
         if amount is None:
             amount = self.amount
-        if amount.minors > self.amount.minors:
-            raise RuntimeError(
-                f'cannot capture more than {self.amount}',
-            )
-        return self.client.capture_order(amount, reason=reason)
+        return self.client.capture_order(self.id, self.amount, reason=reason)
 
-    def update(self, amount: Money) -> None:
-        self.client.order_update(self.id, amount)
-        self.amount = amount
+    async def a_capture(
+        self,
+        amount: typing.Optional[Money] = None,
+        reason: typing.Optional[str] = None,
+    ) -> 'Payment':
+        if amount is None:
+            amount = self.amount
+        return await self.client.a_capture_order(
+            self.id,
+            amount,
+            reason=reason,
+        )
 
-    def events(self) -> list['Event']:
-        return self.client.order_events(self.id)
+    def update(self) -> None:
+        self.client.update_order(self.id, self.amount)
+
+    async def a_update(self) -> None:
+        await self.client.a_update_order(self.id, self.amount)
+
+    def get_refunds(self) -> list['Refund']:
+        return self.client.get_refunds(self.id)
+
+    async def a_get_refunds(self) -> list['Refund']:
+        return await self.client.a_get_refunds(self.id)
+
+    def get_payments(self) -> list['Payment']:
+        return self.client.get_payments(self.id)
+
+    async def a_get_payments(self) -> list['Payment']:
+        return await self.client.a_get_payments(self.id)
+
+    def get_events(self) -> list['Event']:
+        # TODO: Finish it!
+        return self.client.get_events(self.id)
 
 
 # TODO: Change amount type to Money
 @dataclasses.dataclass
 class Payment:
     id: str
+    shop_id: typing.Optional[str]
     order_id: str
     status: PaymentStatus
     created_at: datetime.datetime
@@ -299,7 +335,8 @@ class Account:
     customer_id: typing.Optional[str]
     status: AccountStatus
     name: str
-    amount: Money
+    # TODO: Mismatch with the specification
+    amount: typing.Optional[Money]
     resources: list[AccountResource]
     created_at: datetime.datetime
     external_id: typing.Optional[str]

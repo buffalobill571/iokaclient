@@ -141,12 +141,12 @@ class Ioka(_Client):
     def _dict_to_account(self, account: dict) -> models.Account:
         resources = None
 
-        if 'resources' in account:
+        if 'resources' in account and account['resources'] is not None:
             resources = [
                 models.AccountResource(
                     id=resource['id'],
-                    iban=resource['iban'],
-                    is_default=resource['is_default'],
+                    iban=resource.get('iban'),
+                    is_default=resource.get('is_default'),
                 )
                 for resource in account['resources']
             ]
@@ -154,18 +154,23 @@ class Ioka(_Client):
         return models.Account(
             id=account['id'],
             shop_id=account['shop_id'],
-            customer_id=account['customer_id'],
+            customer_id=account.get('customer_id'),
             status=models.AccountStatus(account['status']),
-            name=account['name'],
+            name=account.get('name'),
+            # TODO: Discuss! Mismatch with the specification
+            amount=_get_money(
+                account['amount'],
+                account.get('currency', 'KZT'),
+            ),
             resources=resources,
             created_at=_parse_datetime(account['created_at']),
-            external_id=account['external_id'],
+            external_id=account.get('external_id'),
         )
 
     def _dict_to_customer(self, customer: dict) -> models.Customer:
         accounts = None
 
-        if 'accounts' in customer:
+        if 'accounts' in customer and customer['accounts'] is not None:
             accounts = [
                 self._dict_to_account(account)
                 for account in customer['accounts']
@@ -175,9 +180,10 @@ class Ioka(_Client):
             id=customer['id'],
             created_at=_parse_datetime(customer['created_at']),
             status=models.CustomerStatus(customer['status']),
-            external_id=customer['external_id'],
-            email=customer['email'],
-            phone=customer['phone'],
+            # TODO: Discuss, mismatch with the specification
+            external_id=customer.get('external_id'),
+            email=customer.get('email'),
+            phone=customer.get('phone'),
             accounts=accounts,
             checkout_url=customer['checkout_url'],
             access_token=customer['access_token'],
@@ -185,8 +191,7 @@ class Ioka(_Client):
 
     def _dict_to_payment(self, payment: dict) -> models.Payment:
         payer = None
-
-        if 'payer' in payment:
+        if 'payer' in payment and payment['payer'] is not None:
             payer_ = payment['payer']
             payer = models.Payer(
                 type=models.PayerType(payer_['type']),
@@ -200,6 +205,24 @@ class Ioka(_Client):
                 customer_id=payer_['customer_id'],
                 card_id=payer_['card_id'],
             )
+        error = None
+        if 'error' in payment and payment['error'] is not None:
+            error = models.ErrorModel(
+                code=payment['error']['code'],
+                message=payment['error']['message'],
+            )
+
+        acquirer = None
+        if 'acquirer' in payment and payment['acquirer'] is not None:
+            acquirer = models.Acquirer(
+                name=payment['acquirer']['name'],
+                reference=payment['acquirer']['reference'],
+            )
+        action = None
+        if 'action' in payment and payment['action'] is not None:
+            action = models.Action(
+                url=payment['action']['url'],
+            )
 
         return models.Payment(
             id=payment['id'],
@@ -212,12 +235,15 @@ class Ioka(_Client):
             refunded_amount=payment['refunded_amount'],
             processing_fee=payment['processing_fee'],
             payer=payer,
+            error=error,
+            acquirer=acquirer,
+            action=action,
         )
 
     def _dict_to_order(self, order: dict) -> models.Order:
         payments = None
 
-        if 'payments' in order:
+        if 'payments' in order and order['payments'] is not None:
             payments = [
                 self._dict_to_order(payment)
                 for payment in order['payments']
@@ -245,13 +271,13 @@ class Ioka(_Client):
 
     def _dict_to_refund(self, refund: dict) -> models.Refund:
         error = None
-        if 'error' in refund:
+        if 'error' in refund and refund['error'] is not None:
             error = models.ErrorModel(
                 code=refund['error']['code'],
                 message=refund['error']['message'],
             )
         acquirer = None
-        if 'acquirer' in refund:
+        if 'acquirer' in refund and refund['acquirer'] is not None:
             acquirer = models.Acquirer(
                 name=refund['acquirer']['name'],
                 reference=refund['acquirer']['reference'],
@@ -829,4 +855,10 @@ class Ioka(_Client):
         return [
             self._dict_to_account(account)
             for account in self._request('get', '/accounts')
+        ]
+
+    async def a_get_accounts(self) -> list[models.Account]:
+        return [
+            self._dict_to_account(account)
+            for account in await self._request('get', '/accounts')
         ]
