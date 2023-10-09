@@ -21,13 +21,14 @@ authors = [
 classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
+    "Development Status :: 2 - Pre-Alpha",
+    "Framework :: AsyncIO",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Topic :: Payments",
 ]
 dependencies=[
     "httpx==0.25.0",
@@ -56,7 +57,6 @@ test = [
     "pytest-mock==3.11.1",
     "pytest==7.4.1",
 ]
-dynamic = ["version"]
 
 [tool.pytest.ini_options]
 addopts = "--cov=ioka --no-cov-on-fail"
