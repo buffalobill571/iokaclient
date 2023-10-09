@@ -13,7 +13,18 @@ Ioka python client, supports both synchronous and asynchronous operations.
 Installation
 ------------
 
-Run ``pip install -i https://test.pypi.org/simple/ iokaclient``.
+Since `iokaclient` not released at PyPi, install `httpx` first:
+
+.. code:: bash
+
+   pip install httpx
+
+then:
+
+.. code:: bash
+
+   pip install -i https://test.pypi.org/simple/ iokaclient
+
 
 Reasoning
 ---------
