@@ -71,37 +71,15 @@ class _Client:
 
         if httpx.codes.is_success(response.status_code):
             return response_body
-        elif response.status_code == httpx.codes.BAD_REQUEST:
-            raise exceptions.ValidationError(
-                message=response_body['message'],
-                code=response_body['code'],
-            )
-        elif response.status_code == httpx.codes.UNAUTHORIZED:
-            raise exceptions.UnauthenticatedError(
-                message=response_body['message'],
-                code=response_body['code'],
-            )
-        elif response.status_code == httpx.codes.FORBIDDEN:
-            raise exceptions.UnauthorizedError(
-                message=response_body['message'],
-                code=response_body['code'],
-            )
-        elif response.status_code == httpx.codes.NOT_FOUND:
-            raise exceptions.NotFoundError(
-                message=response_body['message'],
-                code=response_body['code'],
-            )
-        elif response.status_code == httpx.codes.CONFLICT:
-            raise exceptions.ConflictError(
-                message=response_body['message'],
-                code=response_body['code'],
-            )
-        else:
-            raise exceptions.StatusError(
-                status_code=response.status_code,
-                message=response.text,
-                code='Unknown',
-            )
+
+        message = response_body.get('message') or response.text
+        code = response_body.get('code') or 'Unknown'
+
+        raise exceptions.get_status_error(
+            response.status_code,
+            message,
+            code,
+        )
 
     def _request(self, method: str, url: str, **kwargs) -> _JsonTypes:
         try:
@@ -157,7 +135,7 @@ class Ioka(_Client):
             customer_id=account.get('customer_id'),
             status=models.AccountStatus(account['status']),
             name=account.get('name'),
-            # TODO: Discuss! Mismatch with the specification
+            # TODO: Discuss, mismatch with the specification
             amount=_get_money(
                 account['amount'],
                 account.get('currency', 'KZT'),

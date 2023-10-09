@@ -70,3 +70,22 @@ class ConflictError(StatusError):
 
     def __init__(self, message: str, code: str) -> None:
         super().__init__(httpx.codes.CONFLICT, message, code)
+
+
+_status_error_mapping = {
+    httpx.codes.BAD_REQUEST: ValidationError,
+    httpx.codes.UNAUTHORIZED: UnauthenticatedError,
+    httpx.codes.FORBIDDEN: UnauthorizedError,
+    httpx.codes.NOT_FOUND: NotFoundError,
+    httpx.codes.CONFLICT: ConflictError,
+}
+
+
+def get_status_error(
+    status_code: int,
+    message: str,
+    code: str,
+) -> StatusError:
+    if status_code in _status_error_mapping:
+        return _status_error_mapping[status_code](message, code)
+    return StatusError(status_code, message, code)
