@@ -32,7 +32,7 @@ Reasoning
 Unlike other available clients, this one:
 
 - Supports modern Python versions
-- Does not use global variables for set up `<https://stackoverflow.com/questions/19158339/why-are-global-variables-evil>`
+- Uses dedicated client instance instead of `global variable`_ for set up
 - Supports both synchronous and asynchronous ways of doing operations
 - Uses connection pooling
 - Stricly linted
@@ -128,3 +128,5 @@ TODO
 - Grep lib for TODO's
 - Make stable release to production PyPi
 - Configure releasing through github actions
+
+.. _global variable: https://stackoverflow.com/questions/19158339/why-are-global-variables-evil
