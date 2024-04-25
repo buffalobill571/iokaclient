@@ -53,6 +53,12 @@ Create client, using api key and endpoint url:
 
    client = ioka.Ioka(api_key=..., base_url=...)
 
+Ioka Client class arguments description:
+
+ api_key - Your secret key provided by Ioka, fill form to get API key https://ioka.kz/#application-form
+
+ base_url - URL for sending requests, https://stage-api.ioka.kz by default
+
 Usage
 -----
 
